@@ -3,7 +3,7 @@
 # Hugo Documentation: https://gohugo.io/getting-started/configuration/#all-configuration-settings
 # This file is formatted using YAML syntax - learn more at https://learnxinyminutes.com/docs/yaml/
 
-title: Harsh Tripathi's Portfolio # Website name
+title: Harsh Tripathi # Website name
 baseurl: 'https://vigilant-brattain-9ddc7e.netlify.app/' # Website URL
 copyright: '' # Footer text, e.g. '© {year} Me'
 
