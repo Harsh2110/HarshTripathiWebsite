@@ -23,7 +23,7 @@ date_format: Jan 2006
 #   Leave other parameters empty if not required.
 #   Begin multi-line descriptions with YAML's `|2-` multi-line prefix.
 item:
-- certificate_url: https://www.garp.org/frm
+- certificate_url: ""
   date_end: ""
   date_start: "2019-11-01"
   description: ""
@@ -31,7 +31,7 @@ item:
   organization_url: https://www.garp.org/frm
   title: Financial Risk Management (FRM) - Part 1
   url: ""
-- certificate_url: https://www.datacamp.com/
+- certificate_url: ""
   date_end: ""
   date_start: "2019-03-01"
   description: ""

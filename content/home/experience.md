@@ -25,7 +25,7 @@ experience:
   - title: Risk Analyst
     company: Uber
     company_url: 'https://www.uber.com/'
-    company_logo: org-x
+    company_logo: uber_logo
     location: Hyderabad, India
     date_start: '2020-09-01'
     date_end: '2021-06-01'
@@ -35,7 +35,7 @@ experience:
   - title: Junior Data Scientist
     company: Cars24 India
     company_url: 'https://www.cars24.com/'
-    company_logo: org-x
+    company_logo: cars24_logo
     location: Gurgaon, India
     date_start: '2019-06-01'
     date_end: '2020-09-01'

@@ -69,4 +69,5 @@ After graduation, I joined one of India's leading start-ups called Cars24. My ro
 I have been a silver medalist in a national level badminton tournament in India. With a will to contribute my bit to the society, I joined two NGOs and educated underprivileged children. Additionally, I am a sports fan and I like calling myself a movie buff.
 
 
-{{< icon name="download" pack="fas" >}} Download my {{< staticref "uploads/demo_resume.pdf" "newtab" >}}resumé{{< /staticref >}}.
+<!---{{< icon name="download" pack="fas" >}} Download my {{< staticref "uploads/demo_resume.pdf" "newtab" >}}resumé{{< /staticref >}}.
+-->
