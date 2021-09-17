@@ -39,17 +39,31 @@ experience:
     location: Gurgaon, India
     date_start: '2019-06-01'
     date_end: '2020-09-01'
-    description: Worked in Data Science.
-    
+    description: |2-
+        Worked in end-to-end Data Science on -
+        
+        * XGBoost model for follow-up optimization
+        * Regression Model to rationalize customer expectations
+        * Hierarchical Clustering for cohort-based recommendation
+        
+
+  - title: Data Analyst Intern
+    company: MyGov (Government of India), India
+    company_url: 'https://www.mygov.in/'
+    company_logo: mygov_logo
+    location: Delhi, India
+    date_start: '2018-06-01'
+    date_end: '2018-07-01'
+    description: Worked on Exploratory Data Analysis and Model building of the Twitter impact of politicians of India.
 
 design:
   columns: '2'
   
   background:
     # Name of image in `assets/media/`.
-    image: Coding.jpg
+    image: Work.jpg
     # Darken the image? Range 0-1 where 0 is transparent and 1 is opaque.
-    image_darken: 0.1
+    image_darken: 0.2
     #  Options are `cover` (default), `contain`, or `actual` size.
     image_size: cover
     # Options include `left`, `center` (default), or `right`.
