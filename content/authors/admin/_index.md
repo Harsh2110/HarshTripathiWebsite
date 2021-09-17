@@ -17,12 +17,6 @@ organizations:
 bio: Data Scientist with 15 months of work experience in a leading Indian start-up called Cars24 and 8 months of work experience in Uber.
 
 
-# Interests to show in About widget
-interests:
-- Analytics
-- Machine Learning
-- Quantitative Finance
-
 # Education to show in About widget
 education:
   courses:
@@ -32,6 +26,13 @@ education:
   - course: Bachelor of Science (Hons) Statistics
     institution: University of Delhi, India
     year: 2016-19
+    
+
+# Interests to show in About widget
+interests:
+- Analytics
+- Machine Learning
+- Quantitative Finance
 
 # Social/Academic Networking
 # For available icons, see: https://wowchemy.com/docs/getting-started/page-builder/#icons

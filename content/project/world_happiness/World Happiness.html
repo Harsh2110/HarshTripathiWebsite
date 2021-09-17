@@ -1,0 +1,1044 @@
+---
+title: "World Happiness"
+author: "Harsh Tripathi"
+tags:
+- Regression Modeling
+date: "`14-09-2021"
+output:
+  html_document:
+    theme: flatly
+    highlight: zenburn
+    number_sections: yes
+    toc: yes
+    toc_float: yes
+    code_folding: show
+---
+
+<script src="World Happiness_files/header-attrs/header-attrs.js"></script>
+
+
+<p>In this project, we work on the world happiness data which measures life satisfaction of residents of various countries along with a bunch of other variables such as social support, life expectancy and GDP per capita. We start with pulling the data, manipulating it, doing exploratory data analysis and finally building a regression model.</p>
+<pre class="r"><code>url &lt;- &quot;https://happiness-report.s3.amazonaws.com/2021/DataPanelWHR2021C2.xls&quot;
+
+#Download data to temporary file
+httr::GET(url, write_disk(happiness.temp &lt;- tempfile(fileext = &quot;.xls&quot;)))</code></pre>
+<pre><code>## Response [https://happiness-report.s3.amazonaws.com/2021/DataPanelWHR2021C2.xls]
+##   Date: 2021-09-17 19:03
+##   Status: 200
+##   Content-Type: application/vnd.ms-excel
+##   Size: 435 kB
+## &lt;ON DISK&gt;  C:\Users\harsh\AppData\Local\Temp\RtmpgRjJt7\file3f4c65eb65fb.xls</code></pre>
+<pre class="r"><code># Use read_excel to read it as dataframe
+world_happiness &lt;- read_excel(happiness.temp,
+                    sheet = &quot;Sheet1&quot;,
+                    range = cell_cols(&quot;A:K&quot;)) %&gt;% 
+  janitor::clean_names()</code></pre>
+<p>The variable of interest here is life_ladder, which indicates how happy the residents of a country are. A score of 10 reflects that the respondent feels that they are living the best possible life while a score of 0 signifies that they are living the worst possible life.</p>
+<p>For our analysis, we will consider data of 2019.</p>
+<div id="exploratory-data-analysis" class="section level2">
+<h2>Exploratory Data Analysis</h2>
+<pre class="r"><code>#Considering data of 2019
+world_happiness_19 &lt;- world_happiness %&gt;% 
+  filter(year == 2019)
+
+skim(world_happiness_19)</code></pre>
+<table>
+<caption>(#tab:extract_data_and_skim)Data summary</caption>
+<tbody>
+<tr class="odd">
+<td align="left">Name</td>
+<td align="left">world_happiness_19</td>
+</tr>
+<tr class="even">
+<td align="left">Number of rows</td>
+<td align="left">144</td>
+</tr>
+<tr class="odd">
+<td align="left">Number of columns</td>
+<td align="left">11</td>
+</tr>
+<tr class="even">
+<td align="left">_______________________</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">Column type frequency:</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">character</td>
+<td align="left">1</td>
+</tr>
+<tr class="odd">
+<td align="left">numeric</td>
+<td align="left">10</td>
+</tr>
+<tr class="even">
+<td align="left">________________________</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">Group variables</td>
+<td align="left">None</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: character</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="right">min</th>
+<th align="right">max</th>
+<th align="right">empty</th>
+<th align="right">n_unique</th>
+<th align="right">whitespace</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">country_name</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">4</td>
+<td align="right">25</td>
+<td align="right">0</td>
+<td align="right">144</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: numeric</strong></p>
+<table style="width:100%;">
+<colgroup>
+<col width="21%" />
+<col width="6%" />
+<col width="9%" />
+<col width="5%" />
+<col width="3%" />
+<col width="5%" />
+<col width="5%" />
+<col width="5%" />
+<col width="5%" />
+<col width="5%" />
+<col width="27%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="right">mean</th>
+<th align="right">sd</th>
+<th align="right">p0</th>
+<th align="right">p25</th>
+<th align="right">p50</th>
+<th align="right">p75</th>
+<th align="right">p100</th>
+<th align="left">hist</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">year</td>
+<td align="right">0</td>
+<td align="right">1.00</td>
+<td align="right">2019.00</td>
+<td align="right">0.00</td>
+<td align="right">2019.00</td>
+<td align="right">2019.00</td>
+<td align="right">2019.00</td>
+<td align="right">2019.00</td>
+<td align="right">2019.00</td>
+<td align="left">▁▁▇▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">life_ladder</td>
+<td align="right">0</td>
+<td align="right">1.00</td>
+<td align="right">5.57</td>
+<td align="right">1.11</td>
+<td align="right">2.38</td>
+<td align="right">4.93</td>
+<td align="right">5.59</td>
+<td align="right">6.28</td>
+<td align="right">7.78</td>
+<td align="left">▁▃▇▇▃</td>
+</tr>
+<tr class="odd">
+<td align="left">log_gdp_per_capita</td>
+<td align="right">6</td>
+<td align="right">0.96</td>
+<td align="right">9.48</td>
+<td align="right">1.14</td>
+<td align="right">6.97</td>
+<td align="right">8.56</td>
+<td align="right">9.59</td>
+<td align="right">10.44</td>
+<td align="right">11.65</td>
+<td align="left">▃▅▇▇▅</td>
+</tr>
+<tr class="even">
+<td align="left">social_support</td>
+<td align="right">0</td>
+<td align="right">1.00</td>
+<td align="right">0.82</td>
+<td align="right">0.12</td>
+<td align="right">0.42</td>
+<td align="right">0.76</td>
+<td align="right">0.84</td>
+<td align="right">0.91</td>
+<td align="right">0.98</td>
+<td align="left">▁▂▂▆▇</td>
+</tr>
+<tr class="odd">
+<td align="left">healthy_life_expectancy_at_birth</td>
+<td align="right">5</td>
+<td align="right">0.97</td>
+<td align="right">65.00</td>
+<td align="right">6.65</td>
+<td align="right">48.70</td>
+<td align="right">59.80</td>
+<td align="right">66.60</td>
+<td align="right">69.25</td>
+<td align="right">77.10</td>
+<td align="left">▂▅▃▇▅</td>
+</tr>
+<tr class="even">
+<td align="left">freedom_to_make_life_choices</td>
+<td align="right">1</td>
+<td align="right">0.99</td>
+<td align="right">0.79</td>
+<td align="right">0.12</td>
+<td align="right">0.39</td>
+<td align="right">0.72</td>
+<td align="right">0.82</td>
+<td align="right">0.89</td>
+<td align="right">0.97</td>
+<td align="left">▁▁▅▇▇</td>
+</tr>
+<tr class="odd">
+<td align="left">generosity</td>
+<td align="right">7</td>
+<td align="right">0.95</td>
+<td align="right">-0.02</td>
+<td align="right">0.15</td>
+<td align="right">-0.29</td>
+<td align="right">-0.13</td>
+<td align="right">-0.05</td>
+<td align="right">0.07</td>
+<td align="right">0.56</td>
+<td align="left">▆▇▅▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">perceptions_of_corruption</td>
+<td align="right">8</td>
+<td align="right">0.94</td>
+<td align="right">0.72</td>
+<td align="right">0.19</td>
+<td align="right">0.07</td>
+<td align="right">0.68</td>
+<td align="right">0.77</td>
+<td align="right">0.85</td>
+<td align="right">0.96</td>
+<td align="left">▁▁▂▆▇</td>
+</tr>
+<tr class="odd">
+<td align="left">positive_affect</td>
+<td align="right">1</td>
+<td align="right">0.99</td>
+<td align="right">0.71</td>
+<td align="right">0.11</td>
+<td align="right">0.32</td>
+<td align="right">0.63</td>
+<td align="right">0.73</td>
+<td align="right">0.80</td>
+<td align="right">0.89</td>
+<td align="left">▁▂▅▇▆</td>
+</tr>
+<tr class="even">
+<td align="left">negative_affect</td>
+<td align="right">1</td>
+<td align="right">0.99</td>
+<td align="right">0.29</td>
+<td align="right">0.09</td>
+<td align="right">0.09</td>
+<td align="right">0.22</td>
+<td align="right">0.27</td>
+<td align="right">0.35</td>
+<td align="right">0.50</td>
+<td align="left">▂▇▇▅▂</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>library(countrycode) #To clean up country names
+
+#Getting country_iso3 code for each country
+country_iso3 &lt;-  world_happiness_19 %&gt;% 
+  select(country_name) %&gt;% 
+  pull() %&gt;% 
+  countrycode(
+    origin = &quot;country.name&quot;,
+    destination = &#39;iso3c&#39;) %&gt;% 
+  as_tibble()
+
+#Bind them with right country codes
+plot_data &lt;- bind_cols(world_happiness_19, country_iso3)</code></pre>
+<pre class="r"><code>library(rworldmap) #To get the world map
+library(RColorBrewer) #To get a colour palette
+
+#Joining our data with rworldmap&#39;s data for plotting
+joinData &lt;- joinCountryData2Map(plot_data,
+                                joinCode = &quot;ISO3&quot;,
+                                nameJoinColumn = &quot;value&quot;)</code></pre>
+<pre><code>## 143 codes from your data successfully matched countries in the map
+## 1 codes from your data failed to match with a country code in the map
+## 101 codes from the map weren&#39;t represented in your data</code></pre>
+<pre class="r"><code>#Setting a colour palette
+colourPalette &lt;- RColorBrewer::brewer.pal(5,&quot;YlGnBu&quot;)
+
+#Plotting a world map with life_ladder
+theMap &lt;- mapCountryData(joinData, 
+                         nameColumnToPlot = &quot;life_ladder&quot;,
+                         addLegend = FALSE,
+                         colourPalette = colourPalette,
+                         mapTitle = &quot;Average life ladder scores - 2019&quot;)
+
+do.call(addMapLegend, c(theMap, legendWidth=1, legendMar = 2))</code></pre>
+<p><img src="/project/world_happiness/World%20Happiness_files/figure-html/visualize_data_on_world_map-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p>We observe that developed countries such as America, Australia and Nordic countries are the happiest in the world. On the other hand, African countries such as Rwanda and Zimbabwe have the least life_ladder score.</p>
+<pre class="r"><code>glimpse(world_happiness_19)</code></pre>
+<pre><code>## Rows: 144
+## Columns: 11
+## $ country_name                     &lt;chr&gt; &quot;Afghanistan&quot;, &quot;Albania&quot;, &quot;Algeria&quot;, ~
+## $ year                             &lt;dbl&gt; 2019, 2019, 2019, 2019, 2019, 2019, 2~
+## $ life_ladder                      &lt;dbl&gt; 2.38, 5.00, 4.74, 6.09, 5.49, 7.23, 7~
+## $ log_gdp_per_capita               &lt;dbl&gt; 7.70, 9.54, 9.34, 10.00, 9.52, 10.81,~
+## $ social_support                   &lt;dbl&gt; 0.420, 0.686, 0.803, 0.896, 0.782, 0.~
+## $ healthy_life_expectancy_at_birth &lt;dbl&gt; 52.4, 69.0, 66.1, 69.0, 67.2, 73.9, 7~
+## $ freedom_to_make_life_choices     &lt;dbl&gt; 0.394, 0.777, 0.385, 0.817, 0.844, 0.~
+## $ generosity                       &lt;dbl&gt; -0.10846, -0.09926, 0.00509, -0.21072~
+## $ perceptions_of_corruption        &lt;dbl&gt; 0.924, 0.914, 0.741, 0.830, 0.583, 0.~
+## $ positive_affect                  &lt;dbl&gt; 0.351, 0.681, 0.585, 0.826, 0.598, 0.~
+## $ negative_affect                  &lt;dbl&gt; 0.502, 0.274, 0.215, 0.319, 0.430, 0.~</code></pre>
+<pre class="r"><code>#Create a scatterplot correlation matrix
+world_happiness_19 %&gt;% 
+  select(-c(country_name,year)) %&gt;% 
+  ggpairs(alpha = 0.3)</code></pre>
+<p><img src="/project/world_happiness/World%20Happiness_files/figure-html/scatterplot_correlation_matrix-1.png" width="1536" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#Getting continent for each country
+continent_list &lt;-  world_happiness_19 %&gt;% 
+  select(country_name) %&gt;% 
+  pull() %&gt;% 
+  countrycode(
+    origin = &quot;country.name&quot;,
+    destination = &#39;continent&#39;) %&gt;% 
+  as_tibble()
+
+#Binding continent with data
+world_happiness_19 &lt;- bind_cols(world_happiness_19, continent_list)
+
+#Renaming continent column
+world_happiness_19 &lt;- rename(world_happiness_19, continent=value)</code></pre>
+<pre class="r"><code>world_happiness_19 %&gt;% 
+  
+  #Filtering out cases where continent is NA
+  filter(!is.na(continent)) %&gt;% 
+  
+  #Histogram of life_ladder_score by continent
+  ggplot(aes(x=life_ladder, fill = continent)) +
+  geom_histogram(alpha = 0.5) +
+  
+  #Black and white theme
+  theme_bw() +
+  
+  #Putting title and axes labels
+  labs(title = &quot;Histogram of Life Satisfaction by Continents&quot;,
+       x = &quot;Life Ladder Score&quot;,
+       y = &quot;Count of countries&quot;) </code></pre>
+<p><img src="/project/world_happiness/World%20Happiness_files/figure-html/happiness_distribution_by_continent-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p>It can be observed from the plot that European countries have the highest life ladder score on average while African countries have the lowest. Asia has the maximum range of life ladder scores.</p>
+<pre class="r"><code>world_happiness_19 %&gt;% 
+  
+  #Scatterplot between happiness and gdp, coloured by continent
+  ggplot(aes(x=log_gdp_per_capita, y=life_ladder, col=continent)) +
+  geom_point() +
+  
+  #Black and white theme
+  theme_bw() +
+  
+  #Putting title and axes labels
+  labs(title = &quot;Scatterplot between Life Satisfaction and Log GDP Per Capita&quot;,
+       x = &quot;Log GDP Per Capita&quot;,
+       y = &quot;Life Ladder Score&quot;,
+       #Renaming the legend
+       color = &quot;Continents&quot;)</code></pre>
+<p><img src="/project/world_happiness/World%20Happiness_files/figure-html/happiness_by_gdp-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p>It can be observed that there is a strong positive correlation between Life Ladder Score and GDP Per Capita. On average, people in countries with high GDP per capita tend to be happier. This holds true for every continent except Africa where the variability in data is very high.</p>
+<pre class="r"><code>world_happiness_19 %&gt;% 
+  
+  #Scatterplot between happiness and social_support, coloured by continent
+  ggplot(aes(x=social_support, y=life_ladder, col=continent)) +
+  geom_point() +
+  
+  #Black and white theme
+  theme_bw() +
+  
+  #Putting title and axes labels
+  labs(title = &quot;Scatterplot between Life Satisfaction and Social Support&quot;,
+       x = &quot;Social Support&quot;,
+       y = &quot;Life Ladder Score&quot;,
+       #Renaming the legend
+       color = &quot;Continents&quot;)</code></pre>
+<p><img src="/project/world_happiness/World%20Happiness_files/figure-html/happiness_by_social_support-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p>It can be observed that there is a strong positive correlation between Life Ladder Score and Social Support. On average, people having higher social support tend to be happier. This holds true for every continent except Africa where the variability in data is very high.</p>
+<pre class="r"><code>world_happiness_19 %&gt;% 
+  
+  #Scatterplot between happiness and life exp, coloured by continent
+  ggplot(aes(x=healthy_life_expectancy_at_birth, y=life_ladder, col=continent)) +
+  geom_point() +
+  
+  #Black and white theme
+  theme_bw() +
+  
+  #Putting title and axes labels
+  labs(title = &quot;Scatterplot between Life Satisfaction and Life Expectancy&quot;,
+       x = &quot;Life Expectancy at Birth&quot;,
+       y = &quot;Life Ladder Score&quot;,
+       #Renaming the legend
+       color = &quot;Continents&quot;)</code></pre>
+<p><img src="/project/world_happiness/World%20Happiness_files/figure-html/happiness_by_life_exp-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p>It can be observed that there is a strong positive correlation between Life Ladder Score and Life Expectancy at Birth. On average, people in countries with high life expectancy tend to be happier. This holds true for every continent except Africa where the variability in data is very high.</p>
+<p>Overall, through our EDA, it seems GDP per capita, social support and life expectancy would be important variables in our regression model as they are highly correlated with the dependent variable (life ladder).</p>
+</div>
+<div id="model-building" class="section level2">
+<h2>Model building</h2>
+<pre class="r"><code>#As the count of missing values is not significant, dropping them
+world_happiness_19_complete &lt;- world_happiness_19 %&gt;% 
+  drop_na()
+
+
+#Converting continent to factor variable
+world_happiness_19_complete &lt;- world_happiness_19_complete %&gt;% 
+  mutate(continent = factor(continent))
+
+skim(world_happiness_19_complete)</code></pre>
+<table>
+<caption>(#tab:drop_missing_values)Data summary</caption>
+<tbody>
+<tr class="odd">
+<td align="left">Name</td>
+<td align="left">world_happiness_19_comple…</td>
+</tr>
+<tr class="even">
+<td align="left">Number of rows</td>
+<td align="left">126</td>
+</tr>
+<tr class="odd">
+<td align="left">Number of columns</td>
+<td align="left">12</td>
+</tr>
+<tr class="even">
+<td align="left">_______________________</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">Column type frequency:</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">character</td>
+<td align="left">1</td>
+</tr>
+<tr class="odd">
+<td align="left">factor</td>
+<td align="left">1</td>
+</tr>
+<tr class="even">
+<td align="left">numeric</td>
+<td align="left">10</td>
+</tr>
+<tr class="odd">
+<td align="left">________________________</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">Group variables</td>
+<td align="left">None</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: character</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="right">min</th>
+<th align="right">max</th>
+<th align="right">empty</th>
+<th align="right">n_unique</th>
+<th align="right">whitespace</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">country_name</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">4</td>
+<td align="right">22</td>
+<td align="right">0</td>
+<td align="right">126</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: factor</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="left">ordered</th>
+<th align="right">n_unique</th>
+<th align="left">top_counts</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">continent</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">5</td>
+<td align="left">Afr: 39, Eur: 37, Asi: 28, Ame: 20</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: numeric</strong></p>
+<table style="width:100%;">
+<colgroup>
+<col width="21%" />
+<col width="6%" />
+<col width="9%" />
+<col width="5%" />
+<col width="3%" />
+<col width="5%" />
+<col width="5%" />
+<col width="5%" />
+<col width="5%" />
+<col width="5%" />
+<col width="27%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="right">mean</th>
+<th align="right">sd</th>
+<th align="right">p0</th>
+<th align="right">p25</th>
+<th align="right">p50</th>
+<th align="right">p75</th>
+<th align="right">p100</th>
+<th align="left">hist</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">year</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">2019.00</td>
+<td align="right">0.00</td>
+<td align="right">2019.00</td>
+<td align="right">2019.00</td>
+<td align="right">2019.00</td>
+<td align="right">2019.00</td>
+<td align="right">2019.00</td>
+<td align="left">▁▁▇▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">life_ladder</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">5.56</td>
+<td align="right">1.13</td>
+<td align="right">2.38</td>
+<td align="right">4.92</td>
+<td align="right">5.64</td>
+<td align="right">6.27</td>
+<td align="right">7.78</td>
+<td align="left">▁▃▇▇▃</td>
+</tr>
+<tr class="odd">
+<td align="left">log_gdp_per_capita</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">9.42</td>
+<td align="right">1.15</td>
+<td align="right">6.97</td>
+<td align="right">8.55</td>
+<td align="right">9.56</td>
+<td align="right">10.38</td>
+<td align="right">11.65</td>
+<td align="left">▃▅▇▇▃</td>
+</tr>
+<tr class="even">
+<td align="left">social_support</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0.81</td>
+<td align="right">0.12</td>
+<td align="right">0.42</td>
+<td align="right">0.75</td>
+<td align="right">0.84</td>
+<td align="right">0.91</td>
+<td align="right">0.96</td>
+<td align="left">▁▁▃▅▇</td>
+</tr>
+<tr class="odd">
+<td align="left">healthy_life_expectancy_at_birth</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">64.89</td>
+<td align="right">6.87</td>
+<td align="right">48.70</td>
+<td align="right">59.35</td>
+<td align="right">66.50</td>
+<td align="right">69.57</td>
+<td align="right">77.10</td>
+<td align="left">▂▅▃▇▅</td>
+</tr>
+<tr class="even">
+<td align="left">freedom_to_make_life_choices</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0.79</td>
+<td align="right">0.12</td>
+<td align="right">0.39</td>
+<td align="right">0.72</td>
+<td align="right">0.82</td>
+<td align="right">0.89</td>
+<td align="right">0.97</td>
+<td align="left">▁▁▅▇▇</td>
+</tr>
+<tr class="odd">
+<td align="left">generosity</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">-0.02</td>
+<td align="right">0.15</td>
+<td align="right">-0.29</td>
+<td align="right">-0.13</td>
+<td align="right">-0.05</td>
+<td align="right">0.06</td>
+<td align="right">0.56</td>
+<td align="left">▅▇▅▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">perceptions_of_corruption</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0.72</td>
+<td align="right">0.19</td>
+<td align="right">0.07</td>
+<td align="right">0.68</td>
+<td align="right">0.78</td>
+<td align="right">0.86</td>
+<td align="right">0.96</td>
+<td align="left">▁▁▂▆▇</td>
+</tr>
+<tr class="odd">
+<td align="left">positive_affect</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0.71</td>
+<td align="right">0.11</td>
+<td align="right">0.32</td>
+<td align="right">0.64</td>
+<td align="right">0.73</td>
+<td align="right">0.80</td>
+<td align="right">0.89</td>
+<td align="left">▁▁▅▇▆</td>
+</tr>
+<tr class="even">
+<td align="left">negative_affect</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0.29</td>
+<td align="right">0.09</td>
+<td align="right">0.14</td>
+<td align="right">0.22</td>
+<td align="right">0.27</td>
+<td align="right">0.36</td>
+<td align="right">0.50</td>
+<td align="left">▅▇▅▅▂</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>#Splitting the data into train and test sets
+
+library(rsample) #Package to split data
+set.seed(1234)
+
+#Keeping 75% data in the training set
+train_test_split &lt;- initial_split(world_happiness_19_complete, prop = 0.75)
+
+train_data &lt;- training(train_test_split)
+test_data &lt;- testing(train_test_split)</code></pre>
+<p>We will run the first iteration of the model with only log GDP per capita as the explanatory variable.</p>
+<pre class="r"><code>#Linear regression model 
+model1 &lt;- lm(life_ladder ~ log_gdp_per_capita, data = train_data)
+
+#Summary of the model
+mosaic::msummary(model1)</code></pre>
+<pre><code>##                    Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)         -1.7857     0.5850   -3.05    0.003 ** 
+## log_gdp_per_capita   0.7812     0.0618   12.64   &lt;2e-16 ***
+## 
+## Residual standard error: 0.706 on 92 degrees of freedom
+## Multiple R-squared:  0.635,  Adjusted R-squared:  0.631 
+## F-statistic:  160 on 1 and 92 DF,  p-value: &lt;2e-16</code></pre>
+<pre class="r"><code>#RMSE on the training set
+rmse_train &lt;- train_data %&gt;% 
+  mutate(predictions = predict(model1, .)) %&gt;% 
+  summarise(
+    sqrt(sum(predictions - life_ladder)**2 / n())
+  ) %&gt;% 
+  pull()
+
+cat(paste0(&quot;\nRMSE on training set is: &quot;, round(rmse_train, 4)))</code></pre>
+<pre><code>## 
+## RMSE on training set is: 0</code></pre>
+<pre class="r"><code>#RMSE on the testing set
+rmse_test &lt;- test_data %&gt;% 
+  mutate(predictions = predict(model1, .)) %&gt;% 
+  summarise(
+    sqrt(sum(predictions - life_ladder)**2 / n())
+  ) %&gt;% 
+  pull()
+
+cat(paste0(&quot;\nRMSE on testing set is: &quot;, round(rmse_test, 4)))</code></pre>
+<pre><code>## 
+## RMSE on testing set is: 0.3365</code></pre>
+<p>We observe that if we only use GDP to predict life ladder, the model explains 63% variability in the data and the RMSE on test data is 0.3365.</p>
+<p>Now, we add life expectancy to the model.</p>
+<pre class="r"><code>#Linear regression model 
+model2 &lt;- lm(life_ladder ~ log_gdp_per_capita + healthy_life_expectancy_at_birth, data = train_data)
+
+#Summary of the model
+mosaic::msummary(model2)</code></pre>
+<pre><code>##                                  Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)                       -2.7255     0.6360   -4.29  4.5e-05 ***
+## log_gdp_per_capita                 0.4716     0.1159    4.07   0.0001 ***
+## healthy_life_expectancy_at_birth   0.0595     0.0192    3.11   0.0025 ** 
+## 
+## Residual standard error: 0.675 on 91 degrees of freedom
+## Multiple R-squared:  0.67,   Adjusted R-squared:  0.662 
+## F-statistic: 92.2 on 2 and 91 DF,  p-value: &lt;2e-16</code></pre>
+<pre class="r"><code>#RMSE on the training set
+rmse_train &lt;- train_data %&gt;% 
+  mutate(predictions = predict(model2, .)) %&gt;% 
+  summarise(
+    sqrt(sum(predictions - life_ladder)**2 / n())
+  ) %&gt;% 
+  pull()
+
+cat(paste0(&quot;\nRMSE on training set is: &quot;, round(rmse_train, 4)))</code></pre>
+<pre><code>## 
+## RMSE on training set is: 0</code></pre>
+<pre class="r"><code>#RMSE on the testing set
+rmse_test &lt;- test_data %&gt;% 
+  mutate(predictions = predict(model2, .)) %&gt;% 
+  summarise(
+    sqrt(sum(predictions - life_ladder)**2 / n())
+  ) %&gt;% 
+  pull()
+
+cat(paste0(&quot;\nRMSE on testing set is: &quot;, round(rmse_test, 4)))</code></pre>
+<pre><code>## 
+## RMSE on testing set is: 0.4614</code></pre>
+<p>On adding life expectancy, we see that both predictors are significant. The explainability by the model increases to 66% and the test RMSE is 0.46.</p>
+<p>Now, we add social_support to the model.</p>
+<pre class="r"><code>#Linear regression model
+model3 &lt;- lm(life_ladder ~ log_gdp_per_capita + healthy_life_expectancy_at_birth + social_support, data = train_data)
+
+#Summary of the model
+mosaic::msummary(model3)</code></pre>
+<pre><code>##                                  Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)                       -2.6223     0.5928   -4.42  2.7e-05 ***
+## log_gdp_per_capita                 0.2222     0.1257    1.77  0.08061 .  
+## healthy_life_expectancy_at_birth   0.0557     0.0179    3.12  0.00246 ** 
+## social_support                     3.0697     0.7938    3.87  0.00021 ***
+## 
+## Residual standard error: 0.628 on 90 degrees of freedom
+## Multiple R-squared:  0.717,  Adjusted R-squared:  0.707 
+## F-statistic: 75.9 on 3 and 90 DF,  p-value: &lt;2e-16</code></pre>
+<pre class="r"><code>#RMSE on the training set
+rmse_train &lt;- train_data %&gt;% 
+  mutate(predictions = predict(model3, .)) %&gt;% 
+  summarise(
+    sqrt(sum(predictions - life_ladder)**2 / n())
+  ) %&gt;% 
+  pull()
+
+cat(paste0(&quot;\nRMSE on training set is: &quot;, round(rmse_train, 4)))</code></pre>
+<pre><code>## 
+## RMSE on training set is: 0</code></pre>
+<pre class="r"><code>#RMSE on the testing set
+rmse_test &lt;- test_data %&gt;% 
+  mutate(predictions = predict(model3, .)) %&gt;% 
+  summarise(
+    sqrt(sum(predictions - life_ladder)**2 / n())
+  ) %&gt;% 
+  pull()
+
+cat(paste0(&quot;\nRMSE on testing set is: &quot;, round(rmse_test, 4)))</code></pre>
+<pre><code>## 
+## RMSE on testing set is: 0.3472</code></pre>
+<p>Adding social support renders log GDP per capita insignificant as 95% confidence level, as the p-value for log GDP is greater than 0.05. However, the Adjusted R squared increases to 71% and the test RMSE decreases to 0.35.</p>
+<p>In the next iteration, we add freedom_to_make_life_choices to our model.</p>
+<pre class="r"><code>#Linear regression model
+model4 &lt;- lm(life_ladder ~ log_gdp_per_capita + healthy_life_expectancy_at_birth + social_support + freedom_to_make_life_choices, data = train_data)
+
+#Summary of the model
+mosaic::msummary(model4)</code></pre>
+<pre><code>##                                  Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)                       -3.0054     0.5701   -5.27  9.4e-07 ***
+## log_gdp_per_capita                 0.2445     0.1188    2.06  0.04250 *  
+## healthy_life_expectancy_at_birth   0.0370     0.0177    2.09  0.03950 *  
+## social_support                     2.6817     0.7572    3.54  0.00064 ***
+## freedom_to_make_life_choices       2.1421     0.6157    3.48  0.00078 ***
+## 
+## Residual standard error: 0.593 on 89 degrees of freedom
+## Multiple R-squared:  0.751,  Adjusted R-squared:  0.739 
+## F-statistic:   67 on 4 and 89 DF,  p-value: &lt;2e-16</code></pre>
+<pre class="r"><code>#RMSE on the training set
+rmse_train &lt;- train_data %&gt;% 
+  mutate(predictions = predict(model4, .)) %&gt;% 
+  summarise(
+    sqrt(sum(predictions - life_ladder)**2 / n())
+  ) %&gt;% 
+  pull()
+
+cat(paste0(&quot;\nRMSE on training set is: &quot;, round(rmse_train, 4)))</code></pre>
+<pre><code>## 
+## RMSE on training set is: 0</code></pre>
+<pre class="r"><code>#RMSE on the testing set
+rmse_test &lt;- test_data %&gt;% 
+  mutate(predictions = predict(model4, .)) %&gt;% 
+  summarise(
+    sqrt(sum(predictions - life_ladder)**2 / n())
+  ) %&gt;% 
+  pull()
+
+cat(paste0(&quot;\nRMSE on testing set is: &quot;, round(rmse_test, 4)))</code></pre>
+<pre><code>## 
+## RMSE on testing set is: 0.3414</code></pre>
+<p>We observe that all the variables are significant at 5% confidence level. The R squared increase to 74% and the RMSE on the test set is 0.34.</p>
+<p>Now, we try adding positive_affect to our model and analyze the performance.</p>
+<pre class="r"><code>#Linear regression model 
+model5 &lt;- lm(life_ladder ~ log_gdp_per_capita + healthy_life_expectancy_at_birth + social_support + freedom_to_make_life_choices + positive_affect, data = train_data)
+
+#Summary of the model
+mosaic::msummary(model5)</code></pre>
+<pre><code>##                                  Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)                       -3.3952     0.6334   -5.36  6.6e-07 ***
+## log_gdp_per_capita                 0.2444     0.1182    2.07   0.0416 *  
+## healthy_life_expectancy_at_birth   0.0410     0.0179    2.30   0.0239 *  
+## social_support                     2.3490     0.7908    2.97   0.0038 ** 
+## freedom_to_make_life_choices       1.6702     0.7013    2.38   0.0194 *  
+## positive_affect                    1.0859     0.7855    1.38   0.1703    
+## 
+## Residual standard error: 0.59 on 88 degrees of freedom
+## Multiple R-squared:  0.756,  Adjusted R-squared:  0.742 
+## F-statistic: 54.5 on 5 and 88 DF,  p-value: &lt;2e-16</code></pre>
+<pre class="r"><code>#RMSE on the training set
+rmse_train &lt;- train_data %&gt;% 
+  mutate(predictions = predict(model5, .)) %&gt;% 
+  summarise(
+    sqrt(sum(predictions - life_ladder)**2 / n())
+  ) %&gt;% 
+  pull()
+
+cat(paste0(&quot;\nRMSE on training set is: &quot;, round(rmse_train, 4)))</code></pre>
+<pre><code>## 
+## RMSE on training set is: 0</code></pre>
+<pre class="r"><code>#RMSE on the testing set
+rmse_test &lt;- test_data %&gt;% 
+  mutate(predictions = predict(model5, .)) %&gt;% 
+  summarise(
+    sqrt(sum(predictions - life_ladder)**2 / n())
+  ) %&gt;% 
+  pull()
+
+cat(paste0(&quot;\nRMSE on testing set is: &quot;, round(rmse_test, 4)))</code></pre>
+<pre><code>## 
+## RMSE on testing set is: 0.3858</code></pre>
+<p>We observe that positive_affect is not significant at 95% confidence level as its p-value is greater than 0.05. There is no signficant change in Adjusted R squared from our previous model but the test RMSE increases to 0.38. Hence, we drop the positive_affect variable.</p>
+<p>Instead of positive_affect, we try the negative_affect variable in our model now.</p>
+<pre class="r"><code>#Linear regression model
+model6 &lt;- lm(life_ladder ~ log_gdp_per_capita + healthy_life_expectancy_at_birth + social_support + freedom_to_make_life_choices + negative_affect, data = train_data)
+
+#Summary of the model
+mosaic::msummary(model6)</code></pre>
+<pre><code>##                                  Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)                       -4.5898     0.9310   -4.93  3.8e-06 ***
+## log_gdp_per_capita                 0.2730     0.1173    2.33  0.02223 *  
+## healthy_life_expectancy_at_birth   0.0337     0.0174    1.94  0.05611 .  
+## social_support                     3.7256     0.8900    4.19  6.7e-05 ***
+## freedom_to_make_life_choices       2.2041     0.6046    3.65  0.00045 ***
+## negative_affect                    2.2202     1.0432    2.13  0.03612 *  
+## 
+## Residual standard error: 0.581 on 88 degrees of freedom
+## Multiple R-squared:  0.763,  Adjusted R-squared:  0.749 
+## F-statistic: 56.6 on 5 and 88 DF,  p-value: &lt;2e-16</code></pre>
+<pre class="r"><code>#RMSE on the training set
+rmse_train &lt;- train_data %&gt;% 
+  mutate(predictions = predict(model6, .)) %&gt;% 
+  summarise(
+    sqrt(sum(predictions - life_ladder)**2 / n())
+  ) %&gt;% 
+  pull()
+
+cat(paste0(&quot;\nRMSE on training set is: &quot;, round(rmse_train, 4)))</code></pre>
+<pre><code>## 
+## RMSE on training set is: 0</code></pre>
+<pre class="r"><code>#RMSE on the testing set
+rmse_test &lt;- test_data %&gt;% 
+  mutate(predictions = predict(model6, .)) %&gt;% 
+  summarise(
+    sqrt(sum(predictions - life_ladder)**2 / n())
+  ) %&gt;% 
+  pull()
+
+cat(paste0(&quot;\nRMSE on testing set is: &quot;, round(rmse_test, 4)))</code></pre>
+<pre><code>## 
+## RMSE on testing set is: 0.6438</code></pre>
+<p>We observe that adding negative_affect variable renders life expectancy as insignificant as its p-value is greater than 0.05. The test RMSE increases to 0.64 and hence, we drop the negative_affect variable.</p>
+<p>In our last iteration, we add continent variable to our model.</p>
+<pre class="r"><code>#Linear regression model 
+model7 &lt;- lm(life_ladder ~ log_gdp_per_capita + healthy_life_expectancy_at_birth + social_support + freedom_to_make_life_choices + continent, data = train_data)
+
+#Summary of the model
+mosaic::msummary(model7)</code></pre>
+<pre><code>##                                  Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)                       -3.1597     0.8066   -3.92  0.00018 ***
+## log_gdp_per_capita                 0.2806     0.1147    2.45  0.01653 *  
+## healthy_life_expectancy_at_birth   0.0363     0.0181    2.01  0.04782 *  
+## social_support                     2.2331     0.7226    3.09  0.00270 ** 
+## freedom_to_make_life_choices       2.6045     0.5931    4.39  3.2e-05 ***
+## continentAmericas                  0.1160     0.2526    0.46  0.64724    
+## continentAsia                     -0.5986     0.1967   -3.04  0.00312 ** 
+## continentEurope                   -0.1075     0.2412   -0.45  0.65700    
+## continentOceania                   0.2118     0.4661    0.45  0.65073    
+## 
+## Residual standard error: 0.55 on 85 degrees of freedom
+## Multiple R-squared:  0.795,  Adjusted R-squared:  0.776 
+## F-statistic: 41.2 on 8 and 85 DF,  p-value: &lt;2e-16</code></pre>
+<pre class="r"><code>#RMSE on the training set
+rmse_train &lt;- train_data %&gt;% 
+  mutate(predictions = predict(model7, .)) %&gt;% 
+  summarise(
+    sqrt(sum(predictions - life_ladder)**2 / n())
+  ) %&gt;% 
+  pull()
+
+cat(paste0(&quot;\nRMSE on training set is: &quot;, round(rmse_train, 4)))</code></pre>
+<pre><code>## 
+## RMSE on training set is: 0</code></pre>
+<pre class="r"><code>#RMSE on the testing set
+rmse_test &lt;- test_data %&gt;% 
+  mutate(predictions = predict(model7, .)) %&gt;% 
+  summarise(
+    sqrt(sum(predictions - life_ladder)**2 / n())
+  ) %&gt;% 
+  pull()
+
+cat(paste0(&quot;\nRMSE on testing set is: &quot;, round(rmse_test, 4)))</code></pre>
+<pre><code>## 
+## RMSE on testing set is: 0.3084</code></pre>
+<p>We observe that this model has the highest Adjusted R squared (77.6%) out of all the models and the least RMSE on test data (0.30). We see that out of the dummy variables for continents, only continentAsia is statistically significant.</p>
+<pre class="r"><code>#Produce summary table comparing models using huxtable::huxreg()
+huxreg(model1, model2, model3, model4, model7,
+       statistics = c(&#39;#observations&#39; = &#39;nobs&#39;,
+                      &#39;Adj. R Squared&#39; = &#39;adj.r.squared&#39;, 
+                      &#39;Residual SE&#39; = &#39;sigma&#39;), 
+       bold_signif = 0.05, 
+       stars = NULL
+) %&gt;% 
+  set_caption(&#39;Comparison of models&#39;)</code></pre>
+<table class="huxtable" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:comparison_of_models">
+<caption style="caption-side: top; text-align: center;">Comparison of models</caption><col><col><col><col><col><col><tr>
+<th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(1)</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(2)</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(3)</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(4)</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(5)</th></tr>
+<tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(Intercept)</th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">-1.786&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">-2.726&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">-2.622&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">-3.005&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">-3.160&nbsp;</td></tr>
+<tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">(0.585)</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">(0.636)</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">(0.593)</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">(0.570)</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">(0.807)</td></tr>
+<tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">log_gdp_per_capita</th><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">0.781&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">0.472&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.222&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">0.244&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">0.281&nbsp;</td></tr>
+<tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">(0.062)</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">(0.116)</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(0.126)</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">(0.119)</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">(0.115)</td></tr>
+<tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">healthy_life_expectancy_at_birth</th><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">0.060&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">0.056&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">0.037&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">0.036&nbsp;</td></tr>
+<tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">(0.019)</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">(0.018)</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">(0.018)</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">(0.018)</td></tr>
+<tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">social_support</th><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">3.070&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">2.682&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">2.233&nbsp;</td></tr>
+<tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">(0.794)</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">(0.757)</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">(0.723)</td></tr>
+<tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">freedom_to_make_life_choices</th><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">2.142&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">2.605&nbsp;</td></tr>
+<tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">(0.616)</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">(0.593)</td></tr>
+<tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">continentAmericas</th><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.116&nbsp;</td></tr>
+<tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(0.253)</td></tr>
+<tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">continentAsia</th><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">-0.599&nbsp;</td></tr>
+<tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: bold;">(0.197)</td></tr>
+<tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">continentEurope</th><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-0.107&nbsp;</td></tr>
+<tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(0.241)</td></tr>
+<tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">continentOceania</th><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.212&nbsp;</td></tr>
+<tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(0.466)</td></tr>
+<tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">#observations</th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">94&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">94&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">94&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">94&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">94&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
+<tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Adj. R Squared</th><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.631&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.662&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.707&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.739&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.776&nbsp;</td></tr>
+<tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.8pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Residual SE</th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.8pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.706&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.8pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.675&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.8pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.628&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.8pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.593&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.8pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.550&nbsp;</td></tr>
+</table>
+
+<p>Again, we observe that model7 outperforms the other models. We check for collinearity between the variables using Variance Inflation Factor.</p>
+<pre class="r"><code>#Calculating the variance inflation factor to check collinearity
+car::vif(model7)</code></pre>
+<pre><code>##                                  GVIF Df GVIF^(1/(2*Df))
+## log_gdp_per_capita               5.68  1            2.38
+## healthy_life_expectancy_at_birth 5.14  1            2.27
+## social_support                   2.82  1            1.68
+## freedom_to_make_life_choices     1.61  1            1.27
+## continent                        3.68  4            1.18</code></pre>
+<p>Looking at the VIF, we conclude that there is no significant collinearity between the variables. We now do residual analysis.</p>
+<pre class="r"><code>library(ggfortify) #Package for residual analysis
+
+#Plotting graphs for residual analysis
+autoplot(model7) +
+  #Using black and white theme
+  theme_bw()</code></pre>
+<p><img src="/project/world_happiness/World%20Happiness_files/figure-html/residual_analysis-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p>We observe in the Residuals vs Fitted graph that there is no signifcant pattern observed. From the Normal Q-Q plot, we see that most of the observations within -2 and +2 lie on the normal line.</p>
+<p>Hence, we conclude that to predict life_ladder score, a linear regression model with log_gdp_per_capita, healthy_life_expectancy_at_birth, social_support, freedom_to_make_life_choices and continent as explanatory variables performs the best. This model is able to explain 78% of the variability and the RMSE on testing data is 0.3.</p>
+</div>
