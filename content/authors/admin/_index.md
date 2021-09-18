@@ -62,13 +62,13 @@ highlight_name: true
 ---
 
 ## Introduction
-I belong to the city of Lucknow in India. Since the beginning of my education, I was always fascinated by Mathematics and Computer Science which led me to major in Statistics from the University of Delhi. After working for a couple of years in Data Science and Analytics, I am currently pursuing a Masters in Analytics and Management at London Business School.
+I belong to the city of Lucknow in India. Since the beginning of my education, I was always fascinated with Mathematics and Computer Science which led me to major in Statistics from the University of Delhi. After working for a couple of years in Data Science and Analytics, I am currently pursuing a Masters in Analytics and Management at London Business School.
 
 ## Work Experience
-After graduation, I joined one of India's leading start-ups called Cars24. My role there involved end-to-end Data Science, starting right from data extraction and manipulation, exploratory data analysis, machine learning modeling to the deployment of models to production. I worked in Cars24 for 15 months before working to Uber as a Risk Analyst, wherein I used data analytics to prevent payment fraud.
+After graduation, I joined one of India's leading start-ups called Cars24. My role there involved end-to-end Data Science, starting right from understanding the business problem, data extraction and manipulation, exploratory data analysis, machine learning modeling to the deployment of models to production. I worked in Cars24 for 15 months before joining Uber as a Risk Analyst, wherein I used data analytics to prevent payment fraud.
 
 ## Extra-Curricular Activities
-I have been a silver medalist in a national level badminton tournament in India. With a will to contribute my bit to the society, I joined two NGOs and educated underprivileged children. Additionally, I am a sports fan and I like calling myself a movie buff.
+I have been a silver medalist in a national level badminton tournament in India. With a will to contribute my bit to the society, I joined two NGOs and educated underprivileged children.
 
 
 <!---{{< icon name="download" pack="fas" >}} Download my {{< staticref "uploads/demo_resume.pdf" "newtab" >}}resumé{{< /staticref >}}.

@@ -29,7 +29,7 @@ experience:
     location: Hyderabad, India
     date_start: '2020-09-01'
     date_end: '2021-06-01'
-    description: Developed strategies to mitigate payment fraud through Data Analysis and visualization.
+    description: Developed strategies to mitigate payment fraud through Data Analysis and Visualization.
     
         
   - title: Junior Data Scientist
