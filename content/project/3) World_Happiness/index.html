@@ -1,10 +1,10 @@
 ---
 title: "World Happiness"
 author: "Harsh Tripathi"
-summary: "A Statistics project involving data analysis and modeling."
+summary: "A project involving data analysis and modeling."
 tags:
 - Regression Modeling
-date: "`14-09-2021"
+date: "2021-09-16T00:00:00Z"
 image: 
   focal_point: Smart
 
@@ -18,7 +18,7 @@ output:
     code_folding: show
 ---
 
-<script src="World Happiness_files/header-attrs/header-attrs.js"></script>
+<script src="{{< blogdown/postref >}}index_files/header-attrs/header-attrs.js"></script>
 
 
 <p>In this project, we work on the world happiness data which measures life satisfaction of residents of various countries along with a bunch of other variables such as social support, life expectancy and GDP per capita. We start with pulling the data, manipulating it, doing exploratory data analysis and finally building a regression model.</p>
@@ -27,11 +27,11 @@ output:
 #Download data to temporary file
 httr::GET(url, write_disk(happiness.temp &lt;- tempfile(fileext = &quot;.xls&quot;)))</code></pre>
 <pre><code>## Response [https://happiness-report.s3.amazonaws.com/2021/DataPanelWHR2021C2.xls]
-##   Date: 2021-09-17 22:43
+##   Date: 2021-09-18 11:55
 ##   Status: 200
 ##   Content-Type: application/vnd.ms-excel
 ##   Size: 435 kB
-## &lt;ON DISK&gt;  C:\Users\harsh\AppData\Local\Temp\RtmpKadTM7\file360812833594.xls</code></pre>
+## &lt;ON DISK&gt;  C:\Users\harsh\AppData\Local\Temp\RtmpgNgXNJ\file8982b126e0b.xls</code></pre>
 <pre class="r"><code># Use read_excel to read it as dataframe
 world_happiness &lt;- read_excel(happiness.temp,
                     sheet = &quot;Sheet1&quot;,
@@ -311,7 +311,7 @@ theMap &lt;- mapCountryData(joinData,
                          mapTitle = &quot;Average life ladder scores - 2019&quot;)
 
 do.call(addMapLegend, c(theMap, legendWidth=1, legendMar = 2))</code></pre>
-<p><img src="/project/world_happiness/World%20Happiness_files/figure-html/visualize_data_on_world_map-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/visualize_data_on_world_map-1.png" width="648" style="display: block; margin: auto;" /></p>
 <p>We observe that developed countries such as America, Australia and Nordic countries are the happiest in the world. On the other hand, African countries such as Rwanda and Zimbabwe have the least life_ladder score.</p>
 <pre class="r"><code>glimpse(world_happiness_19)</code></pre>
 <pre><code>## Rows: 144
@@ -331,7 +331,7 @@ do.call(addMapLegend, c(theMap, legendWidth=1, legendMar = 2))</code></pre>
 world_happiness_19 %&gt;% 
   select(-c(country_name,year)) %&gt;% 
   ggpairs(alpha = 0.3)</code></pre>
-<p><img src="/project/world_happiness/World%20Happiness_files/figure-html/scatterplot_correlation_matrix-1.png" width="1536" style="display: block; margin: auto;" /></p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/scatterplot_correlation_matrix-1.png" width="1536" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>#Getting continent for each country
 continent_list &lt;-  world_happiness_19 %&gt;% 
   select(country_name) %&gt;% 
@@ -362,7 +362,7 @@ world_happiness_19 &lt;- rename(world_happiness_19, continent=value)</code></pre
   labs(title = &quot;Histogram of Life Satisfaction by Continents&quot;,
        x = &quot;Life Ladder Score&quot;,
        y = &quot;Count of countries&quot;) </code></pre>
-<p><img src="/project/world_happiness/World%20Happiness_files/figure-html/happiness_distribution_by_continent-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/happiness_distribution_by_continent-1.png" width="648" style="display: block; margin: auto;" /></p>
 <p>It can be observed from the plot that European countries have the highest life ladder score on average while African countries have the lowest. Asia has the maximum range of life ladder scores.</p>
 <pre class="r"><code>world_happiness_19 %&gt;% 
   
@@ -379,7 +379,7 @@ world_happiness_19 &lt;- rename(world_happiness_19, continent=value)</code></pre
        y = &quot;Life Ladder Score&quot;,
        #Renaming the legend
        color = &quot;Continents&quot;)</code></pre>
-<p><img src="/project/world_happiness/World%20Happiness_files/figure-html/happiness_by_gdp-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/happiness_by_gdp-1.png" width="648" style="display: block; margin: auto;" /></p>
 <p>It can be observed that there is a strong positive correlation between Life Ladder Score and GDP Per Capita. On average, people in countries with high GDP per capita tend to be happier. This holds true for every continent except Africa where the variability in data is very high.</p>
 <pre class="r"><code>world_happiness_19 %&gt;% 
   
@@ -396,7 +396,7 @@ world_happiness_19 &lt;- rename(world_happiness_19, continent=value)</code></pre
        y = &quot;Life Ladder Score&quot;,
        #Renaming the legend
        color = &quot;Continents&quot;)</code></pre>
-<p><img src="/project/world_happiness/World%20Happiness_files/figure-html/happiness_by_social_support-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/happiness_by_social_support-1.png" width="648" style="display: block; margin: auto;" /></p>
 <p>It can be observed that there is a strong positive correlation between Life Ladder Score and Social Support. On average, people having higher social support tend to be happier. This holds true for every continent except Africa where the variability in data is very high.</p>
 <pre class="r"><code>world_happiness_19 %&gt;% 
   
@@ -413,7 +413,7 @@ world_happiness_19 &lt;- rename(world_happiness_19, continent=value)</code></pre
        y = &quot;Life Ladder Score&quot;,
        #Renaming the legend
        color = &quot;Continents&quot;)</code></pre>
-<p><img src="/project/world_happiness/World%20Happiness_files/figure-html/happiness_by_life_exp-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/happiness_by_life_exp-1.png" width="648" style="display: block; margin: auto;" /></p>
 <p>It can be observed that there is a strong positive correlation between Life Ladder Score and Life Expectancy at Birth. On average, people in countries with high life expectancy tend to be happier. This holds true for every continent except Africa where the variability in data is very high.</p>
 <p>Overall, through our EDA, it seems GDP per capita, social support and life expectancy would be important variables in our regression model as they are highly correlated with the dependent variable (life ladder).</p>
 </div>
@@ -1042,7 +1042,7 @@ car::vif(model7)</code></pre>
 autoplot(model7) +
   #Using black and white theme
   theme_bw()</code></pre>
-<p><img src="/project/world_happiness/World%20Happiness_files/figure-html/residual_analysis-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/residual_analysis-1.png" width="648" style="display: block; margin: auto;" /></p>
 <p>We observe in the Residuals vs Fitted graph that there is no signifcant pattern observed. From the Normal Q-Q plot, we see that most of the observations within -2 and +2 lie on the normal line.</p>
 <p>Hence, we conclude that to predict life_ladder score, a linear regression model with log_gdp_per_capita, healthy_life_expectancy_at_birth, social_support, freedom_to_make_life_choices and continent as explanatory variables performs the best. This model is able to explain 78% of the variability and the RMSE on testing data is 0.3.</p>
 </div>
