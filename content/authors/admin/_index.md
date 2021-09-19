@@ -45,7 +45,7 @@ social:
   link: https://github.com/Harsh2110
 - icon: linkedin
   icon_pack: fab
-  link: www.linkedin.com/in/harsh-tripathi-2110
+  link: https://www.linkedin.com/in/harsh-tripathi-2110/
 
 # Link to a PDF of your resume/CV.
 # To use: copy your resume to `static/uploads/resume.pdf`, enable `ai` icons in `params.toml`, 
