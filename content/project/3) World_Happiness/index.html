@@ -1,9 +1,10 @@
 ---
 title: "World Happiness"
 author: "Harsh Tripathi"
-summary: "A project involving data analysis and modeling."
+summary: "A project focussed on Data Analysis and Modeling."
 tags:
 - Regression Modeling
+- Data Analysis
 date: "2021-09-16T00:00:00Z"
 image: 
   focal_point: Smart
@@ -27,11 +28,11 @@ output:
 #Download data to temporary file
 httr::GET(url, write_disk(happiness.temp &lt;- tempfile(fileext = &quot;.xls&quot;)))</code></pre>
 <pre><code>## Response [https://happiness-report.s3.amazonaws.com/2021/DataPanelWHR2021C2.xls]
-##   Date: 2021-09-18 11:55
+##   Date: 2021-09-19 18:57
 ##   Status: 200
 ##   Content-Type: application/vnd.ms-excel
 ##   Size: 435 kB
-## &lt;ON DISK&gt;  C:\Users\harsh\AppData\Local\Temp\RtmpgNgXNJ\file8982b126e0b.xls</code></pre>
+## &lt;ON DISK&gt;  C:\Users\harsh\AppData\Local\Temp\Rtmpea96kW\file614843863153.xls</code></pre>
 <pre class="r"><code># Use read_excel to read it as dataframe
 world_happiness &lt;- read_excel(happiness.temp,
                     sheet = &quot;Sheet1&quot;,

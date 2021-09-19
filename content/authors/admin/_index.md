@@ -14,7 +14,7 @@ organizations:
   url: https://www.london.edu/
 
 # Short bio (displayed in user profile at end of posts)
-bio: Data Scientist with 15 months of work experience in a leading Indian start-up called Cars24 and 8 months of work experience in Uber.
+bio: A Data Scientist with a total of ~2 years of work experience in a leading Indian start-up and Uber, and currently a student of the Masters in Analytics and Management Program at London Business School. 
 
 
 # Education to show in About widget

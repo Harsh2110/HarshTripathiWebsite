@@ -1,8 +1,9 @@
 ---
 title: "Excess Rentals in TfL Bike Sharing"
 author: "Harsh Tripathi"
-summary: "A project focussed on data manipulation and visualization."
+summary: "A project focussed on Data manipulation and visualization."
 tags:
+- Data Manipulation
 - Data Visualization
 date: "2021-09-08T00:00:00Z"
 
@@ -28,12 +29,12 @@ url &lt;- &quot;https://data.london.gov.uk/download/number-bicycle-hires/ac29363
 
 #Download TFL data to temporary file
 httr::GET(url, write_disk(bike.temp &lt;- tempfile(fileext = &quot;.xlsx&quot;)))</code></pre>
-<pre><code>## Response [https://airdrive-secure.s3-eu-west-1.amazonaws.com/london/dataset/number-bicycle-hires/2021-08-23T14%3A32%3A29/tfl-daily-cycle-hires.xlsx?X-Amz-Algorithm=AWS4-HMAC-SHA256&amp;X-Amz-Credential=AKIAJJDIMAIVZJDICKHA%2F20210918%2Feu-west-1%2Fs3%2Faws4_request&amp;X-Amz-Date=20210918T115222Z&amp;X-Amz-Expires=300&amp;X-Amz-Signature=137e0f269cc12ddd1cf0cf236f56e0733137e9ce95b25c82ed350f49cb421b8a&amp;X-Amz-SignedHeaders=host]
-##   Date: 2021-09-18 11:54
+<pre><code>## Response [https://airdrive-secure.s3-eu-west-1.amazonaws.com/london/dataset/number-bicycle-hires/2021-08-23T14%3A32%3A29/tfl-daily-cycle-hires.xlsx?X-Amz-Algorithm=AWS4-HMAC-SHA256&amp;X-Amz-Credential=AKIAJJDIMAIVZJDICKHA%2F20210919%2Feu-west-1%2Fs3%2Faws4_request&amp;X-Amz-Date=20210919T185307Z&amp;X-Amz-Expires=300&amp;X-Amz-Signature=0aba7df9e71066e54a7a699d795d0ff1d91872f418e933179fb8fa65d7615c0d&amp;X-Amz-SignedHeaders=host]
+##   Date: 2021-09-19 18:57
 ##   Status: 200
 ##   Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
 ##   Size: 173 kB
-## &lt;ON DISK&gt;  C:\Users\harsh\AppData\Local\Temp\RtmpSQ1CrQ\file431c5f3a1eb1.xlsx</code></pre>
+## &lt;ON DISK&gt;  C:\Users\harsh\AppData\Local\Temp\RtmpELmOs5\file2b8441901a98.xlsx</code></pre>
 <pre class="r"><code>#Use read_excel to read it as dataframe
 bike0 &lt;- read_excel(bike.temp,
                    sheet = &quot;Data&quot;,

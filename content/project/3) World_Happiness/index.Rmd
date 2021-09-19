@@ -1,9 +1,10 @@
 ---
 title: "World Happiness"
 author: "Harsh Tripathi"
-summary: "A project involving data analysis and modeling."
+summary: "A project focussed on Data Analysis and Modeling."
 tags:
 - Regression Modeling
+- Data Analysis
 date: "2021-09-16T00:00:00Z"
 image: 
   focal_point: Smart

@@ -1,8 +1,9 @@
 ---
 title: "Excess Rentals in TfL Bike Sharing"
 author: "Harsh Tripathi"
-summary: "A project focussed on data manipulation and visualization."
+summary: "A project focussed on Data manipulation and visualization."
 tags:
+- Data Manipulation
 - Data Visualization
 date: "2021-09-08T00:00:00Z"
 
